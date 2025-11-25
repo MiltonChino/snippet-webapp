@@ -10,6 +10,7 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSnippet, setEditingSnippet] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
 
@@ -90,17 +91,31 @@ function App() {
   );
 
   useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchTerm]);
+
+  useEffect(() => {
     const handleKeyDown = async (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
         const selection = window.getSelection().toString();
-        if (!selection && filteredSnippets.length === 1) {
-          e.preventDefault();
-          try {
-            await navigator.clipboard.writeText(filteredSnippets[0].content);
-            setToastMessage('Snippet copied to clipboard!');
-            setTimeout(() => setToastMessage(''), 2000);
-          } catch (err) {
-            console.error('Failed to copy:', err);
+        if (!selection) {
+          let snippetToCopy = null;
+
+          if (selectedIndex >= 0 && selectedIndex < filteredSnippets.length) {
+            snippetToCopy = filteredSnippets[selectedIndex];
+          } else if (filteredSnippets.length === 1) {
+            snippetToCopy = filteredSnippets[0];
+          }
+
+          if (snippetToCopy) {
+            e.preventDefault();
+            try {
+              await navigator.clipboard.writeText(snippetToCopy.content);
+              setToastMessage('Snippet copied to clipboard!');
+              setTimeout(() => setToastMessage(''), 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
           }
         }
       }
@@ -108,7 +123,19 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filteredSnippets]);
+  }, [filteredSnippets, selectedIndex]);
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      setSelectedIndex(prev =>
+        prev < filteredSnippets.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : 0);
+    }
+  };
 
   return (
     <div className="app-container">
@@ -202,6 +229,7 @@ function App() {
           placeholder="Search snippets by title or tag..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
           style={{
             padding: '1rem',
             fontSize: '1rem',
@@ -215,6 +243,7 @@ function App() {
         onDelete={deleteSnippet}
         onEdit={handleEditClick}
         searchTerm={searchTerm}
+        selectedIndex={selectedIndex}
       />
     </div>
   );

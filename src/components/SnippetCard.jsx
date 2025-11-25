@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SnippetCard = ({ snippet, onDelete, onEdit, searchTerm }) => {
+const SnippetCard = ({ snippet, onDelete, onEdit, searchTerm, isSelected }) => {
     const [copied, setCopied] = useState(false);
 
     const highlightText = (text, highlight) => {
@@ -23,7 +23,15 @@ const SnippetCard = ({ snippet, onDelete, onEdit, searchTerm }) => {
     };
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="glass-panel" style={{
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            border: isSelected ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+            transform: isSelected ? 'translateY(-2px)' : 'none',
+            boxShadow: isSelected ? 'var(--shadow-lg), var(--glow)' : 'var(--shadow-sm)'
+        }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
                     {highlightText(snippet.title, searchTerm)}

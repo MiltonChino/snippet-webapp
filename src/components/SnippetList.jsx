@@ -1,7 +1,7 @@
 import React from 'react';
 import SnippetCard from './SnippetCard';
 
-const SnippetList = ({ snippets, onDelete, onEdit, searchTerm }) => {
+const SnippetList = ({ snippets, onDelete, onEdit, searchTerm, selectedIndex }) => {
     if (snippets.length === 0) {
         return (
             <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-secondary)' }}>
@@ -18,13 +18,14 @@ const SnippetList = ({ snippets, onDelete, onEdit, searchTerm }) => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
             gap: '1.5rem'
         }}>
-            {snippets.map(snippet => (
+            {snippets.map((snippet, index) => (
                 <SnippetCard
                     key={snippet.id}
                     snippet={snippet}
                     onDelete={onDelete}
                     onEdit={onEdit}
                     searchTerm={searchTerm}
+                    isSelected={index === selectedIndex}
                 />
             ))}
         </div>
