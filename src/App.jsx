@@ -10,6 +10,7 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSnippet, setEditingSnippet] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -88,8 +89,46 @@ function App() {
     s.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  useEffect(() => {
+    const handleKeyDown = async (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        const selection = window.getSelection().toString();
+        if (!selection && filteredSnippets.length === 1) {
+          e.preventDefault();
+          try {
+            await navigator.clipboard.writeText(filteredSnippets[0].content);
+            setToastMessage('Snippet copied to clipboard!');
+            setTimeout(() => setToastMessage(''), 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [filteredSnippets]);
+
   return (
     <div className="app-container">
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--accent-primary)',
+          color: 'white',
+          padding: '0.5rem 1rem',
+          borderRadius: 'var(--radius-sm)',
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 1000,
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          {toastMessage}
+        </div>
+      )}
       <header style={{
         display: 'flex',
         justifyContent: 'space-between',
