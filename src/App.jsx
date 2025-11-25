@@ -8,6 +8,7 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSnippet, setEditingSnippet] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const fileInputRef = useRef(null);
 
@@ -15,9 +16,19 @@ function App() {
     localStorage.setItem('snippets', JSON.stringify(snippets));
   }, [snippets]);
 
-  const addSnippet = (snippet) => {
-    setSnippets([snippet, ...snippets]);
+  const handleSaveSnippet = (snippet) => {
+    if (editingSnippet) {
+      setSnippets(snippets.map(s => s.id === snippet.id ? snippet : s));
+      setEditingSnippet(null);
+    } else {
+      setSnippets([snippet, ...snippets]);
+    }
     setIsFormOpen(false);
+  };
+
+  const handleEditClick = (snippet) => {
+    setEditingSnippet(snippet);
+    setIsFormOpen(true);
   };
 
   const deleteSnippet = (id) => {
@@ -73,6 +84,7 @@ function App() {
 
   const filteredSnippets = snippets.filter(s =>
     s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -123,7 +135,10 @@ function App() {
           </button>
           <button
             className="btn"
-            onClick={() => setIsFormOpen(true)}
+            onClick={() => {
+              setEditingSnippet(null);
+              setIsFormOpen(true);
+            }}
             style={{ display: isFormOpen ? 'none' : 'flex' }}
           >
             + New Snippet
@@ -133,8 +148,12 @@ function App() {
 
       {isFormOpen && (
         <SnippetForm
-          onAdd={addSnippet}
-          onCancel={() => setIsFormOpen(false)}
+          onSave={handleSaveSnippet}
+          onCancel={() => {
+            setIsFormOpen(false);
+            setEditingSnippet(null);
+          }}
+          initialData={editingSnippet}
         />
       )}
 
@@ -155,6 +174,8 @@ function App() {
       <SnippetList
         snippets={filteredSnippets}
         onDelete={deleteSnippet}
+        onEdit={handleEditClick}
+        searchTerm={searchTerm}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import SnippetCard from './SnippetCard';
 
-const SnippetList = ({ snippets, onDelete }) => {
+const SnippetList = ({ snippets, onDelete, onEdit, searchTerm }) => {
     if (snippets.length === 0) {
         return (
             <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-secondary)' }}>
@@ -19,7 +19,13 @@ const SnippetList = ({ snippets, onDelete }) => {
             gap: '1.5rem'
         }}>
             {snippets.map(snippet => (
-                <SnippetCard key={snippet.id} snippet={snippet} onDelete={onDelete} />
+                <SnippetCard
+                    key={snippet.id}
+                    snippet={snippet}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    searchTerm={searchTerm}
+                />
             ))}
         </div>
     );

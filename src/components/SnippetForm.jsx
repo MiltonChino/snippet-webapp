@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const SnippetForm = ({ onAdd, onCancel }) => {
+const SnippetForm = ({ onSave, onCancel, initialData }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [tags, setTags] = useState('');
+
+    useEffect(() => {
+        if (initialData) {
+            setTitle(initialData.title);
+            setContent(initialData.content);
+            setTags(initialData.tags.join(', '));
+        } else {
+            setTitle('');
+            setContent('');
+            setTags('');
+        }
+    }, [initialData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!title.trim() || !content.trim()) return;
 
-        const newSnippet = {
-            id: Date.now().toString(),
+        const snippet = {
+            id: initialData ? initialData.id : Date.now().toString(),
             title,
             content,
             tags: tags.split(',').map(t => t.trim()).filter(t => t),
-            createdAt: new Date().toISOString()
+            createdAt: initialData ? initialData.createdAt : new Date().toISOString()
         };
 
-        onAdd(newSnippet);
+        onSave(snippet);
         setTitle('');
         setContent('');
         setTags('');
@@ -25,7 +37,7 @@ const SnippetForm = ({ onAdd, onCancel }) => {
 
     return (
         <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
-            <h2 style={{ marginBottom: '1.5rem' }}>Add New Snippet</h2>
+            <h2 style={{ marginBottom: '1.5rem' }}>{initialData ? 'Edit Snippet' : 'Add New Snippet'}</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Title</label>
@@ -61,7 +73,7 @@ const SnippetForm = ({ onAdd, onCancel }) => {
 
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                     <button type="submit" className="btn">
-                        Save Snippet
+                        {initialData ? 'Update Snippet' : 'Save Snippet'}
                     </button>
                     <button
                         type="button"

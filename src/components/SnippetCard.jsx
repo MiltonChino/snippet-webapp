@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 
-const SnippetCard = ({ snippet, onDelete }) => {
+const SnippetCard = ({ snippet, onDelete, onEdit, searchTerm }) => {
     const [copied, setCopied] = useState(false);
+
+    const highlightText = (text, highlight) => {
+        if (!highlight || !text) return text;
+        const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+        return parts.map((part, index) =>
+            part.toLowerCase() === highlight.toLowerCase() ?
+                <mark key={index} style={{ backgroundColor: 'rgba(255, 255, 0, 0.4)', color: 'inherit', padding: '0 2px', borderRadius: '2px' }}>{part}</mark> : part
+        );
+    };
 
     const handleCopy = async () => {
         try {
@@ -16,7 +25,9 @@ const SnippetCard = ({ snippet, onDelete }) => {
     return (
         <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{snippet.title}</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
+                    {highlightText(snippet.title, searchTerm)}
+                </h3>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
                         onClick={handleCopy}
@@ -24,6 +35,13 @@ const SnippetCard = ({ snippet, onDelete }) => {
                         title="Copy to clipboard"
                     >
                         {copied ? '✓' : '📋'}
+                    </button>
+                    <button
+                        onClick={() => onEdit(snippet)}
+                        className="btn-icon"
+                        title="Edit snippet"
+                    >
+                        ✏️
                     </button>
                     <button
                         onClick={() => onDelete(snippet.id)}
@@ -46,7 +64,7 @@ const SnippetCard = ({ snippet, onDelete }) => {
                 overflowX: 'auto',
                 color: '#e2e8f0'
             }}>
-                {snippet.content}
+                {highlightText(snippet.content, searchTerm)}
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -58,7 +76,7 @@ const SnippetCard = ({ snippet, onDelete }) => {
                         padding: '0.25rem 0.75rem',
                         borderRadius: '999px'
                     }}>
-                        #{tag}
+                        #{highlightText(tag, searchTerm)}
                     </span>
                 ))}
             </div>
