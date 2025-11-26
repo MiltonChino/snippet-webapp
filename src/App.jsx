@@ -12,7 +12,9 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [toastMessage, setToastMessage] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('snippets', JSON.stringify(snippets));
@@ -125,6 +127,17 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [filteredSnippets, selectedIndex]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleSearchKeyDown = (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       e.preventDefault();
@@ -177,7 +190,7 @@ function App() {
           <p style={{ color: 'var(--text-secondary)' }}>Organize your code snippets efficiently</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <input
             type="file"
             accept=".json"
@@ -185,20 +198,69 @@ function App() {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
-          <button
-            className="btn"
-            onClick={handleImportClick}
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-          >
-            Import Snippets
-          </button>
-          <button
-            className="btn"
-            onClick={saveSnippets}
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-          >
-            Save Snippets
-          </button>
+
+          <div style={{ position: 'relative' }} ref={menuRef}>
+            <button
+              className="btn"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              More ▼
+            </button>
+
+            {isMenuOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '0.5rem',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 100,
+                minWidth: '150px',
+                backdropFilter: 'blur(12px)'
+              }}>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    handleImportClick();
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: 0,
+                    borderBottom: '1px solid var(--border-color)'
+                  }}
+                >
+                  Import Snippets
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    saveSnippets();
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: 0
+                  }}
+                >
+                  Save Snippets
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             className="btn"
             onClick={() => {
