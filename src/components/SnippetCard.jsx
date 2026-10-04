@@ -78,13 +78,27 @@ const SnippetCard = ({ snippet, onDelete, onEdit, searchTerm, isSelected }) => {
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {snippet.tags && snippet.tags.map((tag, index) => (
                     <span key={index} style={{
-                        fontSize: '0.75rem',
-                        background: 'rgba(139, 92, 246, 0.2)',
+                        fontSize: '0.725rem',
+                        background: 'rgba(139, 92, 246, 0.15)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
                         color: '#c4b5fd',
                         padding: '0.25rem 0.75rem',
-                        borderRadius: '999px'
+                        borderRadius: '999px',
+                        transition: 'all 0.2s ease',
+                        cursor: 'default',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)';
+                        e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
                     }}>
-                        #{highlightText(tag, searchTerm)}
+                        🏷️ {highlightText(tag, searchTerm)}
                     </span>
                 ))}
             </div>

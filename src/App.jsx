@@ -1,12 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SnippetList from './components/SnippetList';
 import SnippetForm from './components/SnippetForm';
+import { defaultSnippets } from './data/defaultSnippets';
+
+const CATEGORIES = [
+  'All',
+  'Call Flow',
+  'Payments',
+  'Sales',
+  'Verification',
+  'Troubleshooting',
+  'Note Templates',
+  'Extensions',
+  'Policies & Account'
+];
 
 function App() {
   const [snippets, setSnippets] = useState(() => {
     const saved = localStorage.getItem('snippets');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Error parsing stored snippets', e);
+      }
+    }
+    return defaultSnippets;
   });
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSnippet, setEditingSnippet] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,6 +37,15 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
+
+  const handleRestoreDefaults = () => {
+    if (window.confirm('Are you sure you want to reset and restore all default H2O Wireless templates? This will overwrite your current list.')) {
+      setSnippets(defaultSnippets);
+      setSelectedCategory('All');
+      setToastMessage('H2O templates restored!');
+      setTimeout(() => setToastMessage(''), 2000);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('snippets', JSON.stringify(snippets));
@@ -86,15 +117,30 @@ function App() {
     event.target.value = '';
   };
 
-  const filteredSnippets = snippets.filter(s =>
-    s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredSnippets = snippets.filter(s => {
+    const matchesSearch =
+      s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchesSearch) return false;
+
+    if (selectedCategory === 'All') return true;
+
+    const categoryLower = selectedCategory.toLowerCase();
+    if (categoryLower === 'policies & account') {
+      return s.tags.some(tag => {
+        const t = tag.toLowerCase();
+        return t.includes('policies') || t.includes('account') || t.includes('schedule') || t.includes('multi-line');
+      });
+    }
+
+    return s.tags.some(tag => tag.toLowerCase().includes(categoryLower));
+  });
 
   useEffect(() => {
     setSelectedIndex(-1);
-  }, [searchTerm]);
+  }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     const handleKeyDown = async (e) => {
@@ -252,10 +298,29 @@ function App() {
                     textAlign: 'left',
                     background: 'transparent',
                     border: 'none',
-                    borderRadius: 0
+                    borderRadius: 0,
+                    borderBottom: '1px solid var(--border-color)'
                   }}
                 >
                   Save Snippets
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    handleRestoreDefaults();
+                    setIsMenuOpen(false);
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: 0,
+                    color: '#c4b5fd'
+                  }}
+                >
+                  Restore Defaults
                 </button>
               </div>
             )}
@@ -286,9 +351,21 @@ function App() {
       )}
 
       <div style={{ marginBottom: '2rem' }}>
+        <div className="category-pills">
+          {CATEGORIES.map(category => (
+            <button
+              key={category}
+              className={`category-pill ${selectedCategory === category ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
         <input
           type="text"
-          placeholder="Search snippets by title or tag..."
+          placeholder="Search snippets by title, content or tag..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleSearchKeyDown}
